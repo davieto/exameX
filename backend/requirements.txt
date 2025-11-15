@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-multipart
+opencv-python
+numpy
+qrcode
+reportlab
