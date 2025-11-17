@@ -1,0 +1,23 @@
+name: examex
+description: Sistema de Avaliações Flutter
+publish_to: "none"
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.2.1
+  qr_code_scanner: ^1.0.1
+  shared_preferences: ^2.3.2
+  fl_chart: ^0.68.0
+  http: ^1.2.0
+  csv: ^6.0.0
+  pdf: ^3.11.1
+  printing: ^5.11.0
+  lucide_icons: 0.257.0
+
+flutter:
+  uses-material-design: true
