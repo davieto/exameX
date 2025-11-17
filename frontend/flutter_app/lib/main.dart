@@ -10,11 +10,25 @@ class ExameXApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ExameX Mobile',
+      title: 'ExameX',
       debugShowCheckedModeBanner: false,
+
+      // === Tema global ===
       theme: buildAppTheme(),
+
+      // === Sistema de rotas híbrido (mobile + desktop) ===
       onGenerateRoute: generateRoute,
+
+      // === Rota inicial ===
       initialRoute: '/home',
+
+      // === Animação de transição mais suave entre rotas ===
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: child!,
+        );
+      },
     );
   }
 }
