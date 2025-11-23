@@ -7,3 +7,6 @@ opencv-python
 numpy
 qrcode
 reportlab
+PyJWT
+passlib[bcrypt]
+python-decouple

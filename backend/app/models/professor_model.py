@@ -6,5 +6,5 @@ class Professor(Base):
 
     idProfessor = Column(Integer, primary_key=True, index=True)
     nome = Column(String(45))
-    email = Column(String(45))
-    senha = Column(String(45))
+    email = Column(String(45), unique=True)
+    senha = Column(String(255))
