@@ -56,7 +56,7 @@ class _AppPopoverState extends State<AppPopover> {
         ),
       ),
     );
-    Overlay.of(context, debugRequiredFor: widget)?.insert(_entry!);
+    Overlay.of(context, debugRequiredFor: widget).insert(_entry!);
   }
 
   void _hideOverlay() {

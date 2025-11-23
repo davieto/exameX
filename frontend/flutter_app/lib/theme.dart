@@ -10,14 +10,10 @@ final ColorScheme colorScheme = const ColorScheme(
   onPrimary: Colors.white,
 
   secondary: Color(0xFFF2D7DD), // hsl(348 44% 94%)
-  onSecondary: Color(0xFF4B1B2B),
-
-  // === Fundo e superfícies ===
-  background: Color(0xFFFFFFFF), // branco puro
-  onBackground: Color(0xFF2A0E11), // hsl(348 44% 15%)
+  onSecondary: Color(0xFF4B1B2B), // hsl(348 44% 15%)
   surface: Color(0xFFFFFFFF),
   onSurface: Color(0xFF2A0E11),
-  surfaceVariant: Color(0xFFF4EFF0), // hsl(348 20% 96%)
+  surfaceContainerHighest: Color(0xFFF4EFF0), // hsl(348 20% 96%)
 
   // === Erros / destrutivo ===
   error: Color(0xFFE53935),
@@ -61,7 +57,7 @@ ThemeData buildAppTheme() {
       ),
     ),
 
-    scaffoldBackgroundColor: colorScheme.background,
+    scaffoldBackgroundColor: colorScheme.surface,
     canvasColor: colorScheme.surface,
     dividerColor: colorScheme.outlineVariant,
 
@@ -106,7 +102,7 @@ ThemeData buildAppTheme() {
     // === Campos de texto ===
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+      fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
       hintStyle:
           baseTextTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.6)),
       contentPadding:
@@ -134,12 +130,12 @@ ThemeData buildAppTheme() {
 
     // === Scrollbars, tooltips, popovers ===
     scrollbarTheme: ScrollbarThemeData(
-      thumbColor: MaterialStateProperty.all(colorScheme.outline),
-      trackColor: MaterialStateProperty.all(colorScheme.surfaceVariant),
+      thumbColor: WidgetStateProperty.all(colorScheme.outline),
+      trackColor: WidgetStateProperty.all(colorScheme.surfaceContainerHighest),
     ),
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: colorScheme.onBackground.withOpacity(0.8),
+        color: colorScheme.onSurface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(6),
       ),
       textStyle:

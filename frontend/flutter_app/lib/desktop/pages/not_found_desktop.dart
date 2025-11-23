@@ -16,7 +16,7 @@ class NotFoundDesktopPage extends StatelessWidget {
         content: Center(
           child: Container(
             alignment: Alignment.center,
-            color: color.surfaceVariant.withOpacity(0.2),
+            color: color.surfaceContainerHighest.withOpacity(0.2),
             height: MediaQuery.of(context).size.height - 64, // abaixo do TopBar
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -28,7 +28,7 @@ class NotFoundDesktopPage extends StatelessWidget {
                       .displayLarge
                       ?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: color.onBackground),
+                          color: color.onSurface),
                 ),
                 const SizedBox(height: 16),
                 Text(

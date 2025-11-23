@@ -53,13 +53,13 @@ class _AppTabsState extends State<AppTabs> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color:
-                          selected ? color.surfaceVariant.withOpacity(0.4) : Colors.transparent,
+                          selected ? color.surfaceContainerHighest.withOpacity(0.4) : Colors.transparent,
                     ),
                     child: Text(
                       widget.tabs[i],
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                        color: selected ? color.onBackground : color.onSurfaceVariant,
+                        color: selected ? color.onSurface : color.onSurfaceVariant,
                       ),
                     ),
                   ),

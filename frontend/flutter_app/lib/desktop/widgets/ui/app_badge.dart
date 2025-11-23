@@ -38,7 +38,7 @@ class AppBadge extends StatelessWidget {
         break;
       case BadgeVariant.outline:
         bg = Colors.transparent;
-        fg = color.onBackground;
+        fg = color.onSurface;
         border = BorderSide(color: color.outlineVariant);
         break;
     }

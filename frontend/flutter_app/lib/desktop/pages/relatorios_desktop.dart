@@ -28,7 +28,7 @@ class RelatoriosDesktopPage extends StatelessWidget {
                             .headlineMedium
                             ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: color.onBackground)),
+                                color: color.onSurface)),
                     const SizedBox(height: 6),
                     Text('Acompanhe o desempenho das turmas e avaliações',
                         style: TextStyle(
@@ -95,7 +95,7 @@ class _Metric extends StatelessWidget {
                 Text(value,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: color.onBackground))
+                        color: color.onSurface))
               ])),
           Container(
             width: 48,
@@ -131,7 +131,7 @@ class _Chart extends StatelessWidget {
                       .titleMedium
                       ?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: color.onBackground))),
+                          color: color.onSurface))),
           const Divider(height: 0),
           SizedBox(
               height: height,
