@@ -29,7 +29,7 @@ class GabaritosDesktopPage extends StatelessWidget {
                             .headlineMedium
                             ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: color.onBackground)),
+                                color: color.onSurface)),
                     const SizedBox(height: 6),
                     Text('Corrija provas através de QR codes e gabaritos',
                         style: TextStyle(
@@ -52,7 +52,7 @@ class GabaritosDesktopPage extends StatelessWidget {
                           .titleMedium
                           ?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: color.onBackground)),
+                              color: color.onSurface)),
                   const SizedBox(height: 8),
                   Text(
                       'Use a câmera para ler o QR code da prova e iniciar a correção automática.',
@@ -85,7 +85,7 @@ class GabaritosDesktopPage extends StatelessWidget {
                           .titleMedium
                           ?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: color.onBackground)),
+                              color: color.onSurface)),
                   const SizedBox(height: 8),
                   Text(
                       'Faça upload de imagens de gabaritos para processamento em lote.',
@@ -105,7 +105,7 @@ class GabaritosDesktopPage extends StatelessWidget {
           const SizedBox(height: 40),
           AppCard(
               padding: const EdgeInsets.all(24),
-              color: color.surfaceVariant.withOpacity(0.2),
+              color: color.surfaceContainerHighest.withOpacity(0.2),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -115,7 +115,7 @@ class GabaritosDesktopPage extends StatelessWidget {
                             .titleMedium
                             ?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: color.onBackground)),
+                                color: color.onSurface)),
                     const SizedBox(height: 16),
                     _infoStep(context, color, 1,
                         'Cada prova possui um QR code único gerado automaticamente.'),

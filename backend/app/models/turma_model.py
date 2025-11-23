@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.db import Base
 
 class Turma(Base):
@@ -8,3 +9,5 @@ class Turma(Base):
     idCurso = Column(Integer, ForeignKey("Curso.idCurso"))
     turma = Column(String(45))
     periodo = Column(Integer)
+
+    curso = relationship("Curso")

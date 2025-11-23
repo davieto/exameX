@@ -45,7 +45,7 @@ class _AppAccordionState extends State<AppAccordion> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: color.onBackground,
+                      color: color.onSurface,
                     ),
                   ),
                   Icon(
@@ -68,7 +68,7 @@ class _AppAccordionState extends State<AppAccordion> {
                   : CrossFadeState.showSecond,
               firstChild: Container(
                 width: double.infinity,
-                color: color.surfaceVariant.withOpacity(0.1),
+                color: color.surfaceContainerHighest.withOpacity(0.1),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: widget.content,

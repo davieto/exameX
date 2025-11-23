@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'widgets/responsive_layout.dart';
+import 'mobile/widgets/responsive_layout.dart';
 
 // ==== Telas Mobile ====
-import 'screens/home_screen.dart';
-import 'screens/gabarito_screen.dart';
-import 'screens/questoes_screen.dart';
-import 'screens/prepare_provas_screen.dart';
-import 'screens/nova_prova_screen.dart';
-import 'screens/compartilhar_screen.dart';
-import 'screens/not_found_screen.dart';
+import 'mobile/screens/home_screen.dart';
+import 'mobile/screens/gabarito_screen.dart';
+import 'mobile/screens/questoes_screen.dart';
+import 'mobile/screens/prepare_provas_screen.dart';
+import 'mobile/screens/nova_prova_screen.dart';
+import 'mobile/screens/compartilhar_screen.dart';
+import 'mobile/screens/not_found_screen.dart';
 
 // ==== Telas Desktop ====
 import 'desktop/pages/home_desktop.dart';
