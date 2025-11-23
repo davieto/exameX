@@ -53,7 +53,7 @@ class HomeDesktopPage extends StatelessWidget {
               'Bem-vindo ao ExameX',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: color.onBackground,
+                    color: color.onSurface,
                   ),
             ),
             const SizedBox(height: 16),
@@ -99,7 +99,7 @@ class HomeDesktopPage extends StatelessWidget {
                                     .titleMedium
                                     ?.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        color: color.onBackground)),
+                                        color: color.onSurface)),
                             const SizedBox(height: 8),
                             Text(f['desc'] as String,
                                 style: TextStyle(

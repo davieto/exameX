@@ -51,7 +51,7 @@ class _AppButtonState extends State<AppButton> {
         break;
       case ButtonVariant.outline:
         baseBg = Colors.transparent;
-        textColor = color.onBackground;
+        textColor = color.onSurface;
         borderColor = color.outlineVariant;
         break;
       default:
@@ -66,7 +66,7 @@ class _AppButtonState extends State<AppButton> {
       } else if (widget.variant == ButtonVariant.outline) {
         return color.primary.withOpacity(0.08);
       } else {
-        return color.surfaceVariant.withOpacity(0.15);
+        return color.surfaceContainerHighest.withOpacity(0.15);
       }
     }();
 
