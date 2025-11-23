@@ -57,7 +57,6 @@ app.include_router(questoes_router.router)
 app.include_router(provas_router.router)
 app.include_router(pdf_router.router)
 app.include_router(qr_router.router)
-app.include_router(export_router.router)
 app.include_router(estatisticas_router.router)
 
 # === Rotas Administrativas (somente type = admin) ===

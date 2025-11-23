@@ -10,3 +10,5 @@ reportlab
 PyJWT
 passlib[bcrypt]
 python-decouple
+openpyxl
+pandas
