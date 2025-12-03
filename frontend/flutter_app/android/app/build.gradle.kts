@@ -55,6 +55,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+<<<<<<< HEAD
 }
 
 //  Copia o APK do caminho real para onde o Flutter espera
@@ -70,4 +71,6 @@ tasks.whenTaskAdded {
             }
         }
     }
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 }

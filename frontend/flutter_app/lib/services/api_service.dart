@@ -1,4 +1,5 @@
 import 'dart:convert';
+<<<<<<< HEAD
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -77,6 +78,13 @@ class ApiService {
   }
 
   // ========= PROVAS =========
+=======
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
+
+class ApiService {
+  static const baseUrl = 'http://10.0.2.2:8000';
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 
   static Future<List<dynamic>> listarProvas() async {
     final res = await http.get(Uri.parse('$baseUrl/provas/'));
@@ -93,6 +101,7 @@ class ApiService {
       body: jsonEncode({'titulo': titulo, 'descricao': descricao}),
     );
     if (res.statusCode != 200 && res.statusCode != 201) {
+<<<<<<< HEAD
       throw Exception('Erro ao criar prova (${res.statusCode})');
     }
   }
@@ -106,10 +115,14 @@ class ApiService {
     );
     if (res.statusCode != 200) {
       throw Exception('Erro ao vincular questões');
+=======
+      throw Exception('Erro ao criar prova');
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
     }
   }
 
   static Future<Uint8List> gerarQr(int idProva) async {
+<<<<<<< HEAD
     final res = await http.get(Uri.parse('$baseUrl/qr/$idProva'));
     if (res.statusCode == 200) return res.bodyBytes;
     throw Exception('Erro ao gerar QR: ${res.statusCode}');
@@ -208,3 +221,53 @@ class ApiService {
     throw Exception('Erro ao carregar matérias (${res.statusCode})');
   }
 }
+=======
+  final res = await http.get(Uri.parse('$baseUrl/qr/$idProva'));
+  if (res.statusCode == 200) return res.bodyBytes;
+  throw Exception('Erro ao gerar QR Code');
+}
+
+static Future<Uint8List> gerarPdf(int idProva) async {
+  final res = await http.get(Uri.parse('$baseUrl/pdf/$idProva'));
+  if (res.statusCode == 200) return res.bodyBytes;
+  throw Exception('Erro ao gerar PDF');
+}
+
+static Future<void> exportarCsv() async {
+  final res = await http.get(Uri.parse('$baseUrl/export/'));
+  if (res.statusCode != 200) throw Exception('Erro ao exportar CSV');
+}
+
+static Future<List<dynamic>> listarQuestoes() async {
+  final res = await http.get(Uri.parse('$baseUrl/questoes/objetivas/'));
+  if (res.statusCode == 200) {
+    return jsonDecode(utf8.decode(res.bodyBytes));
+  } else {
+    throw Exception('Erro ao buscar questões');
+  }
+}
+
+static Future<void> criarQuestaoObjetiva(Map<String, dynamic> dados) async {
+  final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/objetivas/'));
+  req.fields['titulo'] = dados['titulo'];
+  req.fields['idDificuldade'] = dados['idDificuldade'].toString();
+  req.fields['idProfessor'] = dados['idProfessor'].toString();
+  req.fields['alternativas'] = jsonEncode(dados['alternativas']);
+  if (dados['imagem'] != null) {
+    req.files.add(await http.MultipartFile.fromPath('imagem', dados['imagem']));
+  }
+  final res = await req.send();
+  if (res.statusCode < 200 || res.statusCode > 299) {
+    throw Exception('Erro ao criar questão');
+  }
+}
+
+static Future<void> deletarQuestao(int id) async {
+  final res = await http.delete(Uri.parse('$baseUrl/questoes/objetivas/$id'));
+  if (res.statusCode != 200) {
+    throw Exception('Erro ao deletar questão');
+  }
+}
+
+}
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c

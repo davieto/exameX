@@ -49,6 +49,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+<<<<<<< HEAD
   cross_file:
     dependency: transitive
     description:
@@ -57,6 +58,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.5+1"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   crypto:
     dependency: transitive
     description:
@@ -81,6 +84,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+<<<<<<< HEAD
   dio:
     dependency: transitive
     description:
@@ -97,6 +101,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   equatable:
     dependency: transitive
     description:
@@ -121,6 +127,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.1"
+<<<<<<< HEAD
   file_picker:
     dependency: "direct main"
     description:
@@ -169,6 +176,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.3+5"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   fl_chart:
     dependency: "direct main"
     description:
@@ -182,6 +191,7 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+<<<<<<< HEAD
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -190,6 +200,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.33"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -227,6 +239,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.4"
+<<<<<<< HEAD
   image_picker:
     dependency: "direct main"
     description:
@@ -291,6 +304,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   lucide_icons:
     dependency: "direct main"
     description:
@@ -315,6 +330,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+<<<<<<< HEAD
   mime:
     dependency: transitive
     description:
@@ -323,6 +339,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   path:
     dependency: transitive
     description:
@@ -560,6 +578,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+<<<<<<< HEAD
   win32:
     dependency: transitive
     description:
@@ -568,6 +587,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.15.0"
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   xdg_directories:
     dependency: transitive
     description:

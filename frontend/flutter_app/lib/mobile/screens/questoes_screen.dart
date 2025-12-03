@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import '../../services/api_service.dart';
 import '../widgets/questao_card.dart';
 import '../widgets/questao_form_dialog.dart';
@@ -69,10 +70,34 @@ class _QuestoesScreenState extends State<QuestoesScreen> {
     }
   }
 
+=======
+import '../widgets/responsive_layout.dart';
+import '../widgets/mobile_header.dart';
+import '../widgets/search_filters.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/bottom_nav_bar.dart';
+
+class QuestoesScreen extends StatelessWidget {
+  const QuestoesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveLayout(
+      mobile: _QuestoesMobile(),
+      desktop: const Scaffold(
+        body: Center(child: Text('Versão desktop em construção')),
+      ),
+    );
+  }
+}
+
+class _QuestoesMobile extends StatelessWidget {
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+<<<<<<< HEAD
         child: Column(children: [
           const MobileHeader(),
           Expanded(
@@ -100,6 +125,29 @@ class _QuestoesScreenState extends State<QuestoesScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () => _abrirForm(),
+=======
+        child: Column(
+          children: [
+            const MobileHeader(),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: const [
+                  Text(
+                    "Pesquise ou cadastre questões",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  SizedBox(height: 16),
+                  SearchFilters(),
+                  SizedBox(height: 16),
+                  EmptyState(),
+                ],
+              ),
+            ),
+          ],
+        ),
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 3),
     );
