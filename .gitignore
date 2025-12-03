@@ -1,4 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# FastAPI / venv
+.venv/
+venv/
+.env
+
 # Flutter / Android build
-frontend/flutter_app/build/
+*.log
+build/
+android/app/build/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/.symlinks/
+ios/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+
+# Flutter intermediate files
 frontend/flutter_app/android/app/build/
-**/build/
+frontend/flutter_app/build/
+frontend/flutter_app/ios/build/
+
+# APKs, clusters de build, libs binárias
+*.apk
+*.aab
+*.so
+*.dll
+*.exe
+
+# IDE specifics
+.vscode/
+.idea/
+*.iml
