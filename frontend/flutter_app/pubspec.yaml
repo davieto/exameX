@@ -16,7 +16,15 @@ dependencies:
   csv: ^6.0.0
   pdf: ^3.11.1
   printing: ^5.11.0
+<<<<<<< HEAD
+  lucide_icons: ^0.257.0
+
+  file_saver: ^0.2.12
+  file_picker: ^8.1.4
+  image_picker: ^1.1.2
+=======
   lucide_icons: 0.257.0
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 
 flutter:
   uses-material-design: true

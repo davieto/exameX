@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+import 'package:file_picker/file_picker.dart';
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../services/api_service.dart';
@@ -5,6 +9,11 @@ import '../layout/desktop_layout.dart';
 import '../widgets/ui/app_card.dart';
 import '../widgets/ui/app_input.dart';
 import '../widgets/ui/app_button.dart';
+<<<<<<< HEAD
+import '../widgets/nova_questao_dialog.dart';
+import '../widgets/visualizar_questao_dialog.dart';
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 
 class QuestoesDesktopPage extends StatefulWidget {
   const QuestoesDesktopPage({super.key});
@@ -25,6 +34,10 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
 
   Future<void> carregarQuestoes() async {
     try {
+<<<<<<< HEAD
+      setState(() => carregando = true);
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
       final lista = await ApiService.listarQuestoes();
       setState(() {
         questoes = lista;
@@ -36,6 +49,52 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
     }
   }
 
+<<<<<<< HEAD
+  /// ======== CRIAÇÃO DE QUESTÃO (nova tela completa) =========
+  Future<void> criarQuestaoDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (_) => NovaQuestaoDialog(
+        open: true,
+        onOpenChange: (open) async {
+          if (!open) {
+            Navigator.pop(context);
+            // Atualiza o banco de questões depois de criar
+            await carregarQuestoes();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Questão criada com sucesso!')),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  /// ======== IMPORTAÇÃO CSV =========
+  Future<void> importarQuestoes() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result != null) {
+      final filePath = result.files.single.path;
+      if (filePath != null) {
+        try {
+          await ApiService.importarQuestoesCsv(filePath);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Importação concluída com sucesso!')));
+          await carregarQuestoes();
+        } catch (e) {
+          debugPrint('Erro ao importar questões: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Erro ao importar CSV')));
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme;
+
+=======
   Future<void> criarQuestaoDialog(BuildContext context) async {
     final tituloCtrl = TextEditingController();
     final dificuldadeCtrl = TextEditingController(text: "1");
@@ -128,6 +187,7 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme;
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
     return DesktopLayout(
       content: Center(
         child: ConstrainedBox(
@@ -135,11 +195,39 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+<<<<<<< HEAD
+              // ======== Cabeçalho ========
+=======
               // Cabeçalho
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
+<<<<<<< HEAD
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Banco de Questões',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: color.onSurface)),
+                        const SizedBox(height: 4),
+                        Text('Gerencie suas questões objetivas',
+                            style: TextStyle(
+                                color: color.onSurfaceVariant, fontSize: 15)),
+                      ]),
+                  Row(children: [
+                    AppButton(
+                      label: 'Importar CSV',
+                      icon: LucideIcons.upload,
+                      onPressed: importarQuestoes,
+                    ),
+                    const SizedBox(width: 10),
+                    AppButton(
+=======
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Banco de Questões',
@@ -154,14 +242,23 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                   ),
                   Row(children: [
                     AppButton(
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
                       label: 'Nova Questão',
                       icon: LucideIcons.plus,
                       onPressed: () => criarQuestaoDialog(context),
                     ),
+<<<<<<< HEAD
+                  ]),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+=======
                   ])
                 ],
               ),
               const SizedBox(height: 32),
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
               AppInput(
                 prefixIcon: LucideIcons.search,
                 placeholder: 'Pesquisar questões...',
@@ -178,7 +275,12 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                   child: Center(
                     child: Text(
                       "Nenhuma questão cadastrada",
+<<<<<<< HEAD
+                      style: TextStyle(
+                          color: color.onSurfaceVariant, fontSize: 16),
+=======
                       style: TextStyle(color: color.onSurfaceVariant, fontSize: 16),
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
                     ),
                   ),
                 )
@@ -195,6 +297,64 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
+<<<<<<< HEAD
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(q['titulo'] ?? 'Sem título',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: color.onSurface,
+                                            )),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Dificuldade ID: ${q['idDificuldade']} | Professor ID: ${q['idProfessor']}",
+                                      style: TextStyle(
+                                          color: color.onSurfaceVariant,
+                                          fontSize: 13),
+                                    ),
+                                  ]),
+                            ),
+                            Row(
+                              children: [
+                                AppButton(
+                                  label: 'Visualizar',
+                                  variant: ButtonVariant.ghost,
+                                  icon: LucideIcons.eye,
+                                  onPressed: () =>
+                                      visualizarQuestao(context, q),
+                                ),
+                                const SizedBox(width: 8),
+                                AppButton(
+                                  label: 'Duplicar',
+                                  variant: ButtonVariant.outline,
+                                  icon: LucideIcons.copy,
+                                  onPressed: () => duplicarQuestao(context, q),
+                                ),
+                                const SizedBox(width: 8),
+                                AppButton(
+                                  label: 'Excluir',
+                                  variant: ButtonVariant.outline,
+                                  icon: LucideIcons.trash2,
+                                  onPressed: () async {
+                                    try {
+                                      await ApiService.deletarQuestao(
+                                          q['idQuestaoObjetiva']);
+                                      await carregarQuestoes();
+                                    } catch (e) {
+                                      debugPrint('Erro ao excluir questão: $e');
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Erro ao excluir questão')));
+                                    }
+                                  },
+                                ),
+                              ],
+=======
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Text(q['titulo'] ?? 'Sem título',
                                     style: Theme.of(context)
@@ -215,6 +375,7 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                                 await ApiService.deletarQuestao(q['id']);
                                 carregarQuestoes();
                               },
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
                             )
                           ],
                         ),
@@ -228,4 +389,36 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
       ),
     );
   }
+<<<<<<< HEAD
+
+  /// === VISUALIZAR QUESTÃO ===
+  void visualizarQuestao(BuildContext context, dynamic questao) async {
+    await showDialog(
+      context: context,
+      builder: (_) => VisualizarQuestaoDialog(questao: questao),
+    );
+  }
+
+  /// === DUPLICAR QUESTÃO ===
+  void duplicarQuestao(BuildContext context, dynamic questao) async {
+    await showDialog(
+      context: context,
+      builder: (_) => NovaQuestaoDialog(
+        open: true,
+        onOpenChange: (open) async {
+          if (!open) {
+            Navigator.pop(context);
+            await carregarQuestoes();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Questão duplicada com sucesso!')),
+            );
+          }
+        },
+        questaoOriginal: questao,
+      ),
+    );
+  }
 }
+=======
+}
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c

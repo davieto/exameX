@@ -3,6 +3,11 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
+  file_saver
+  file_selector_windows
+=======
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   printing
 )
 

@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
 
 class ToastMessage {
+<<<<<<< HEAD
+  static void show(
+    BuildContext context, {
+    required String message,
+    bool success = true,
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    // Usa o ScaffoldMessenger, mais seguro que Overlay manual
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) {
+      debugPrint("ToastMessage: context inválido");
+      return;
+    }
+
+    final color = success ? Colors.green : Colors.redAccent;
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: color,
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        duration: duration,
+      ),
+    );
+=======
   static void show(BuildContext context,
       {required String message, bool success = true, Duration duration = const Duration(seconds: 2)}) {
     final color = success ? Colors.green : Colors.redAccent;
@@ -34,5 +61,6 @@ class ToastMessage {
     );
     overlay.insert(entry);
     Future.delayed(duration, () => entry.remove());
+>>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   }
 }
