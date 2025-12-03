@@ -1,0 +1,44 @@
+app:
+  id: com.examex.app
+  name: ExameX – Sistema de Correção de Provas
+
+permissions:
+  - name: android.permission.CAMERA
+    type: dangerous
+    feature: Leitura de QR Codes e correção óptica (OMR)
+    data_min: imagem em tempo real capturada pela câmera
+    request_timing: Ao abrir a função “Ler Prova” ou “Escanear QR”
+    rationale: Necessário para identificar automaticamente a prova e processar a leitura.
+    alternative: Inserção manual do código da prova
+    storage: Não armazena; imagem descartada após leitura.
+    play_policy: Política de Permissões de Câmera + Preenchimento do formulário de declarações no Play Console
+
+  - name: android.permission.READ_EXTERNAL_STORAGE
+    type: dangerous
+    feature: Importação de planilhas de questões
+    data_min: Arquivo XLSX/CSV selecionado pelo usuário
+    request_timing: Quando o usuário clicar em “Importar Questões”
+    rationale: Necessário para ler dados do arquivo escolhido.
+    alternative: Preencher questões manualmente pelo CRUD do app
+    storage: Lido temporariamente; apagado após importação.
+    play_policy: Política de Arquivos / Data Access Play Console
+
+  - name: android.permission.WRITE_EXTERNAL_STORAGE
+    type: dangerous
+    feature: Exportação de resultados e provas
+    data_min: Arquivo PDF/CSV gerado pelo aplicativo
+    request_timing: Ao clicar em “Exportar” ou “Gerar PDF”
+    rationale: Permite salvar prova ou relatório no diretório de downloads.
+    alternative: Compartilhar via intent do sistema (sem salvar arquivo)
+    storage: Arquivo salvo apenas no diretório de destino; sem coleta posterior.
+    play_policy: Política de Arquivos / Exportação de Dados
+
+  - name: ACTION_SEND (intent)
+    type: normal
+    feature: Compartilhamento de PDF/QR
+    data_min: arquivo escolhido pelo usuário
+    request_timing: Ao clicar em “Compartilhar”
+    rationale: Necessário para permitir envio por email ou mensageiro.
+    alternative: Salvar localmente apenas
+    storage: Controlado pelo próprio usuário
+    play_policy: Não requer declaração adicional

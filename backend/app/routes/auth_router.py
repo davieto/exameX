@@ -61,11 +61,9 @@ def login(
     O Swagger enviará automaticamente 'username' e 'password'.
     """
 
-    email = form_data.username  # Swagger envia 'username'
+    email = form_data.username
     senha = form_data.password
 
-    # Aqui você pode assumir o tipo automaticamente:
-    # tenta encontrar primeiro como Professor, depois como Admin
     usuario = db.query(Professor).filter_by(email=email).first()
     tipo = "professor"
 

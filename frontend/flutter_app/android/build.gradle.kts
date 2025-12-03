@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 allprojects {
     repositories {
         google()
@@ -5,35 +7,24 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory =
-    rootProject.layout.buildDirectory
-        .dir("../../build")
-        .get()
-rootProject.layout.buildDirectory.value(newBuildDir)
-
+// 🔧 Força todos os subprojetos (inclusive plugins) a compilarem com JVM 17
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
-}
-
-subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-// 🧹 Tarefa de limpeza
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
-}
-
-// 🔧 >>> NOVO BLOCO – força todos os módulos a usarem mesma JVM (21)
-subprojects {
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "17"
+    // aplica a configuração de toolchain para todos os módulos Kotlin
+    plugins.withId("org.jetbrains.kotlin.android") {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension>("kotlin") {
+            jvmToolchain(17)
         }
     }
+
+    // garante o mesmo nível para código Java
     tasks.withType<JavaCompile>().configureEach {
+        // ✅ Corrigido: o Kotlin DSL espera strings, não enum JavaVersion
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
+}
+
+// 🧹 Tarefa global de limpeza
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
 }

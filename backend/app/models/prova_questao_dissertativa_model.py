@@ -1,4 +1,3 @@
-# prova_questao_dissertativa_model.py
 from sqlalchemy import Column, Integer, ForeignKey
 from app.db import Base
 

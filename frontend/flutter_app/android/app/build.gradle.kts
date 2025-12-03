@@ -56,3 +56,18 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
+
+//  Copia o APK do caminho real para onde o Flutter espera
+tasks.whenTaskAdded {
+    if (name == "packageDebug") {
+        doLast {
+            val fromApk = "$buildDir/outputs/apk/debug/app-debug.apk"
+            val toDir = file("$rootDir/../build/app/outputs/flutter-apk")
+            toDir.mkdirs()
+            copy {
+                from(fromApk)
+                into(toDir)
+            }
+        }
+    }
+}

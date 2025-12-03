@@ -1,10 +1,14 @@
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../services/api_service.dart';
 import '../layout/desktop_layout.dart';
 import '../widgets/ui/app_button.dart';
-import '../widgets/ui/app_input.dart';
 import '../widgets/ui/app_card.dart';
-import '../../services/api_service.dart';
+import '../widgets/ui/app_input.dart';
+import '../widgets/ui/app_dialog.dart';
+import 'questoes_desktop.dart';
+import '../widgets/adicionar_questoes_dialog.dart';
 
 class AvaliacoesDesktopPage extends StatefulWidget {
   const AvaliacoesDesktopPage({super.key});
@@ -16,7 +20,6 @@ class AvaliacoesDesktopPage extends StatefulWidget {
 class _AvaliacoesDesktopPageState extends State<AvaliacoesDesktopPage> {
   List<dynamic> provas = [];
   bool carregando = true;
-  final _buscarController = TextEditingController();
 
   @override
   void initState() {
@@ -26,167 +29,281 @@ class _AvaliacoesDesktopPageState extends State<AvaliacoesDesktopPage> {
 
   Future<void> carregarProvas() async {
     try {
+      setState(() => carregando = true);
       final lista = await ApiService.listarProvas();
       setState(() {
         provas = lista;
         carregando = false;
       });
     } catch (e) {
-      debugPrint('Erro ao carregar provas: $e');
+      debugPrint('Erro ao listar provas: $e');
       setState(() => carregando = false);
     }
   }
 
-  Future<void> criarProva() async {
-    await ApiService.criarProva(
-      'Nova Avaliação Automática',
-      'Criada pelo Flutter Desktop',
+  /// === Criação com formulário ===
+  void _abrirFormularioNovaProva() {
+    final tituloCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Criar nova avaliação'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: tituloCtrl,
+              decoration: const InputDecoration(labelText: 'Título da prova'),
+            ),
+            TextField(
+              controller: descCtrl,
+              decoration: const InputDecoration(labelText: 'Descrição'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              if (tituloCtrl.text.trim().isEmpty) return;
+              Navigator.pop(context);
+              await ApiService.criarProva(
+                tituloCtrl.text.trim(),
+                descCtrl.text.trim(),
+              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('Avaliação criada!')));
+              await carregarProvas();
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
     );
-    carregarProvas();
+  }
+
+  /// === Edição título/descrição ===
+  void _editarProva(Map prova) {
+    final tituloCtrl = TextEditingController(text: prova['titulo']);
+    final descCtrl = TextEditingController(text: prova['descricao'] ?? '');
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Editar avaliação'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: tituloCtrl,
+              decoration: const InputDecoration(labelText: 'Título'),
+            ),
+            TextField(
+              controller: descCtrl,
+              decoration: const InputDecoration(labelText: 'Descrição'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await ApiService.atualizarProva(
+                prova['idProva'],
+                {
+                  'titulo': tituloCtrl.text.trim(),
+                  'descricao': descCtrl.text.trim(),
+                },
+              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('Prova atualizada!')));
+              await carregarProvas();
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// === Exclusão ===
+  void _excluirProva(int id) {
+    AppDialog.show(
+      context,
+      title: 'Excluir prova?',
+      description: 'Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      onConfirm: () async {
+        await ApiService.deletarProva(id);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Prova excluída!")));
+        await carregarProvas();
+      },
+    );
+  }
+
+  /// === Visualização (lista de questões) ===
+  void _verQuestoes(int idProva) async {
+    final questoes = await ApiService.listarQuestoesDaProva(idProva);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Questões da Avaliação'),
+        content: SizedBox(
+          width: 500,
+          child: questoes.isEmpty
+              ? const Text("Nenhuma questão vinculada.")
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: questoes
+                      .map((q) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Text('•  ${q['titulo']}'),
+                          ))
+                      .toList(),
+                ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme;
 
-    return LayoutBuilder(builder: (context, c) {
-      if (c.maxWidth < 1024) return const SizedBox.shrink();
-
-      return DesktopLayout(
-        content: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ===== Cabeçalho =====
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Avaliações',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: color.onSurface)),
-                          const SizedBox(height: 4),
-                          Text('Gerencie suas provas e avaliações',
-                              style: TextStyle(
-                                  color: color.onSurfaceVariant, fontSize: 16)),
-                        ]),
-                    AppButton(
-                      label: 'Nova Avaliação',
-                      icon: LucideIcons.plus,
-                      onPressed: criarProva, // 🔄 integração real
-                    )
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // ===== Campo de busca =====
-                AppInput(
-                  placeholder: 'Pesquisar avaliações...',
-                  prefixIcon: LucideIcons.search,
-                  controller: _buscarController,
-                ),
-                const SizedBox(height: 32),
-
-                // ===== Conteúdo Dinâmico =====
-                if (carregando)
-                  const Center(child: CircularProgressIndicator())
-                else if (provas.isEmpty)
-                  AppCard(
-                    color: color.surfaceContainerHighest.withOpacity(0.15),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 80, horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: color.primary.withOpacity(0.1),
-                          child: Icon(LucideIcons.fileText,
-                              color: color.primary, size: 36),
-                        ),
-                        const SizedBox(height: 16),
-                        Text('Nenhuma avaliação cadastrada',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: color.onSurface)),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                            width: 520,
-                            child: Text(
-                                'Comece criando sua primeira avaliação. Você poderá adicionar questões do banco de dados ou criar novas.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: color.onSurfaceVariant,
-                                    fontSize: 14))),
-                        const SizedBox(height: 24),
-                        AppButton(
-                          label: 'Criar Primeira Avaliação',
-                          icon: LucideIcons.plus,
-                          onPressed: criarProva, // 🔄 integração real
-                        )
-                      ],
-                    ),
-                  )
-                else
-                  // ===== Lista de avaliações =====
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: provas.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: 16),
-                      itemBuilder: (context, i) {
-                        final prova = provas[i];
-                        return AppCard(
-                          padding: const EdgeInsets.all(24),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(prova['titulo']?.toString() ??
-                                          'Sem título'),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        prova['descricao']?.toString() ?? '',
-                                        style: TextStyle(
-                                          color: color.onSurfaceVariant,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ]),
+    return DesktopLayout(
+      content: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Avaliações',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color.onSurface,
+                      )),
+              AppButton(
+                label: 'Nova Avaliação',
+                icon: LucideIcons.plus,
+                onPressed: _abrirFormularioNovaProva,
+              ),
+            ]),
+            const SizedBox(height: 24),
+            carregando
+                ? const Center(child: CircularProgressIndicator())
+                : provas.isEmpty
+                    ? Center(
+                        child: Text('Nenhuma prova encontrada',
+                            style: TextStyle(color: color.onSurfaceVariant)),
+                      )
+                    : Expanded(
+                        child: ListView.separated(
+                          itemCount: provas.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (_, i) {
+                            final prova = provas[i];
+                            return AppCard(
+                              padding: const EdgeInsets.all(20),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(prova['titulo'] ?? 'Sem título',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: color.onSurface)),
+                                        if (prova['descricao'] != null)
+                                          Text(prova['descricao'],
+                                              style: TextStyle(
+                                                  color: color.onSurfaceVariant))
+                                      ],
+                                    ),
+                                  ),
+                                  Row(children: [
+                                    IconButton(
+                                      tooltip: 'Visualizar questões',
+                                      icon: const Icon(LucideIcons.eye),
+                                      onPressed: () => _verQuestoes(prova['idProva']),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Editar',
+                                      icon: const Icon(LucideIcons.edit2),
+                                      onPressed: () => _editarProva(prova),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Excluir',
+                                      icon: const Icon(LucideIcons.trash2),
+                                      onPressed: () => _excluirProva(prova['idProva']),
+                                    ),
+                                    IconButton(
+  tooltip: 'Gerenciar Questões',
+  icon: const Icon(LucideIcons.listPlus),
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (_) => AdicionarQuestoesDialog(
+        idProva: prova['idProva'],
+        onSaved: carregarProvas,
+      ),
+    );
+  },
+),
+const SizedBox(width: 12),
+AppButton(
+  label: 'PDF',
+  variant: ButtonVariant.outline,
+  icon: LucideIcons.fileText,
+  onPressed: () async {
+    final bytes = await ApiService.gerarPdf(prova['idProva']);
+    await FileSaver.instance.saveFile(
+      name: 'prova_${prova['idProva']}',
+      bytes: bytes,
+      ext: 'pdf',
+    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('PDF gerado!')));
+  },
+),
+                                    const SizedBox(width: 12),
+                                    AppButton(
+                                      label: 'PDF',
+                                      variant: ButtonVariant.outline,
+                                      icon: LucideIcons.fileText,
+                                      onPressed: () async {
+                                        final bytes = await ApiService.gerarPdf(prova['idProva']);
+                                        await FileSaver.instance.saveFile(
+  name: 'prova_${prova['idProva']}',
+  bytes: bytes,
+  ext: 'pdf',
+);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('PDF gerado!')));
+                                      },
+                                    ),
+                                  ])
+                                ],
                               ),
-                              AppButton(
-                                label: 'Ver Detalhes',
-                                variant: ButtonVariant.outline,
-                                onPressed: () {
-                                  // futuro: navegar para tela de detalhes
-                                },
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
+                            );
+                          },
+                        ),
+                      )
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 }

@@ -16,7 +16,7 @@ def listar_provas(db: Session = Depends(get_db)):
 def obter_prova(id_prova: int, db: Session = Depends(get_db)):
     prova = db.query(Prova).filter(Prova.idProva == id_prova).first()
     if not prova:
-        return {"erro": "Prova não encontrada"}
+        raise HTTPException(status_code=404, detail="Prova não encontrada")
     return prova
 
 @router.post("/", response_model=ProvaResponse)
@@ -31,7 +31,7 @@ def criar_prova(prova_in: ProvaCreate, db: Session = Depends(get_db)):
 def atualizar_prova(id_prova: int, dados: ProvaUpdate, db: Session = Depends(get_db)):
     prova = db.query(Prova).filter(Prova.idProva == id_prova).first()
     if not prova:
-        return {"erro": "Prova não encontrada"}
+        raise HTTPException(status_code=404, detail="Prova não encontrada")
     for campo, valor in dados.dict(exclude_unset=True).items():
         setattr(prova, campo, valor)
     db.commit()
@@ -41,7 +41,7 @@ def atualizar_prova(id_prova: int, dados: ProvaUpdate, db: Session = Depends(get
 def deletar_prova(id_prova: int, db: Session = Depends(get_db)):
     prova = db.query(Prova).filter(Prova.idProva == id_prova).first()
     if not prova:
-        return {"erro": "Prova não encontrada"}
+        raise HTTPException(status_code=404, detail="Prova não encontrada")
     db.delete(prova)
     db.commit()
     return {"msg": "Prova excluída com sucesso"}
@@ -50,26 +50,29 @@ def deletar_prova(id_prova: int, db: Session = Depends(get_db)):
 def adicionar_questoes(id_prova: int, ids_questoes: list[int], db: Session = Depends(get_db)):
     prova = db.query(Prova).filter(Prova.idProva == id_prova).first()
     if not prova:
-        return {"erro": "Prova não encontrada"}
-
+        raise HTTPException(status_code=404, detail="Prova não encontrada")
     for id_q in ids_questoes:
         existe = db.query(ProvaQuestaoObjetiva).filter_by(
             idProva=id_prova, idQuestaoObjetiva=id_q).first()
         if not existe:
-            vinculo = ProvaQuestaoObjetiva(idProva=id_prova, idQuestaoObjetiva=id_q)
-            db.add(vinculo)
+            db.add(ProvaQuestaoObjetiva(idProva=id_prova, idQuestaoObjetiva=id_q))
     db.commit()
     return {"msg": "Questões adicionadas à prova"}
 
 @router.get("/{id_prova}/questoes")
 def listar_questoes_da_prova(id_prova: int, db: Session = Depends(get_db)):
     ids = db.query(ProvaQuestaoObjetiva.idQuestaoObjetiva).filter_by(idProva=id_prova)
-    questoes = db.query(QuestaoObjetiva).filter(QuestaoObjetiva.idQuestaoObjetiva.in_(ids)).all()
-    resultado = []
-    for q in questoes:
-        resultado.append({
+    questoes = db.query(QuestaoObjetiva).filter(
+        QuestaoObjetiva.idQuestaoObjetiva.in_(ids)
+    ).all()
+    return [
+        {
             "id": q.idQuestaoObjetiva,
             "titulo": q.titulo,
-            "alternativas": [{"texto": a.texto, "afirmativa": a.afirmativa} for a in q.alternativas]
-        })
-    return resultado
+            "alternativas": [
+                {"texto": a.texto, "afirmativa": a.afirmativa}
+                for a in q.alternativas
+            ],
+        }
+        for q in questoes
+    ]
