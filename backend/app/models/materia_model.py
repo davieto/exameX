@@ -6,3 +6,4 @@ class Materia(Base):
 
     idMateria = Column(Integer, primary_key=True, index=True)
     nome = Column(String(45), nullable=False)
+    

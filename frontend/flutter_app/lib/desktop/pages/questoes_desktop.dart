@@ -6,6 +6,8 @@ import '../layout/desktop_layout.dart';
 import '../widgets/ui/app_card.dart';
 import '../widgets/ui/app_input.dart';
 import '../widgets/ui/app_button.dart';
+import '../widgets/nova_questao_dialog.dart';
+import '../widgets/visualizar_questao_dialog.dart';
 
 class QuestoesDesktopPage extends StatefulWidget {
   const QuestoesDesktopPage({super.key});
@@ -38,109 +40,23 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
     }
   }
 
-  /// ======== CRIAÇÃO DE QUESTÃO COM DIALOG =========
+  /// ======== CRIAÇÃO DE QUESTÃO (nova tela completa) =========
   Future<void> criarQuestaoDialog(BuildContext context) async {
-    final tituloCtrl = TextEditingController();
-    final dificuldadeCtrl = TextEditingController(text: "1");
-    final professorCtrl = TextEditingController(text: "1");
-
-    List<Map<String, dynamic>> alternativas = [
-      {"texto": "Alternativa A", "afirmativa": 0},
-      {"texto": "Alternativa B", "afirmativa": 0},
-      {"texto": "Alternativa C", "afirmativa": 0},
-      {"texto": "Alternativa D", "afirmativa": 0},
-      {"texto": "Alternativa E", "afirmativa": 1},
-    ];
-
     await showDialog(
       context: context,
-      builder: (ctx) {
-        final color = Theme.of(context).colorScheme;
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return AlertDialog(
-              title: const Text("Criar nova questão"),
-              content: SizedBox(
-                width: 420,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: tituloCtrl,
-                        decoration: const InputDecoration(labelText: "Título da questão"),
-                      ),
-                      TextField(
-                        controller: dificuldadeCtrl,
-                        decoration: const InputDecoration(labelText: "ID Dificuldade"),
-                      ),
-                      TextField(
-                        controller: professorCtrl,
-                        decoration: const InputDecoration(labelText: "ID Professor"),
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("Alternativas:",
-                            style: TextStyle(color: color.onSurfaceVariant, fontWeight: FontWeight.w600)),
-                      ),
-                      const SizedBox(height: 8),
-                      for (int i = 0; i < alternativas.length; i++)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                onChanged: (v) => alternativas[i]["texto"] = v,
-                                decoration: InputDecoration(
-                                  labelText: "Alternativa ${String.fromCharCode(65 + i)}",
-                                ),
-                              ),
-                            ),
-                            Checkbox(
-                              value: alternativas[i]["afirmativa"] == 1,
-                              onChanged: (val) {
-                                for (final a in alternativas) {
-                                  a["afirmativa"] = 0;
-                                }
-                                alternativas[i]["afirmativa"] = val == true ? 1 : 0;
-                                setModalState(() {}); // atualiza apenas o dialog
-                              },
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancelar")),
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    try {
-                      await ApiService.criarQuestaoObjetiva({
-                        'titulo': tituloCtrl.text.trim(),
-                        'idDificuldade': int.tryParse(dificuldadeCtrl.text) ?? 1,
-                        'idProfessor': int.tryParse(professorCtrl.text) ?? 1,
-                        'alternativas': alternativas,
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Questão criada com sucesso!')),
-                      );
-                      await carregarQuestoes();
-                    } catch (e) {
-                      debugPrint('Erro ao criar questão: $e');
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(const SnackBar(content: Text('Erro ao criar questão.')));
-                    }
-                  },
-                  child: const Text("Salvar"),
-                ),
-              ],
+      builder: (_) => NovaQuestaoDialog(
+        open: true,
+        onOpenChange: (open) async {
+          if (!open) {
+            Navigator.pop(context);
+            // Atualiza o banco de questões depois de criar
+            await carregarQuestoes();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Questão criada com sucesso!')),
             );
-          },
-        );
-      },
+          }
+        },
+      ),
     );
   }
 
@@ -152,13 +68,13 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
       if (filePath != null) {
         try {
           await ApiService.importarQuestoesCsv(filePath);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Importação concluída com sucesso!')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Importação concluída com sucesso!')));
           await carregarQuestoes();
         } catch (e) {
           debugPrint('Erro ao importar questões: $e');
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Erro ao importar CSV')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Erro ao importar CSV')));
         }
       }
     }
@@ -179,16 +95,21 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Banco de Questões',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold, color: color.onSurface)),
-                    const SizedBox(height: 4),
-                    Text('Gerencie suas questões objetivas',
-                        style: TextStyle(color: color.onSurfaceVariant, fontSize: 15)),
-                  ]),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Banco de Questões',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: color.onSurface)),
+                        const SizedBox(height: 4),
+                        Text('Gerencie suas questões objetivas',
+                            style: TextStyle(
+                                color: color.onSurfaceVariant, fontSize: 15)),
+                      ]),
                   Row(children: [
                     AppButton(
                       label: 'Importar CSV',
@@ -222,7 +143,8 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                   child: Center(
                     child: Text(
                       "Nenhuma questão cadastrada",
-                      style: TextStyle(color: color.onSurfaceVariant, fontSize: 16),
+                      style: TextStyle(
+                          color: color.onSurfaceVariant, fontSize: 16),
                     ),
                   ),
                 )
@@ -239,34 +161,63 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(q['titulo'] ?? 'Sem título',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: color.onSurface,
-                                        )),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Dificuldade ID: ${q['idDificuldade']} | Professor ID: ${q['idProfessor']}",
-                                  style: TextStyle(color: color.onSurfaceVariant, fontSize: 13),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(q['titulo'] ?? 'Sem título',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: color.onSurface,
+                                            )),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Dificuldade ID: ${q['idDificuldade']} | Professor ID: ${q['idProfessor']}",
+                                      style: TextStyle(
+                                          color: color.onSurfaceVariant,
+                                          fontSize: 13),
+                                    ),
+                                  ]),
+                            ),
+                            Row(
+                              children: [
+                                AppButton(
+                                  label: 'Visualizar',
+                                  variant: ButtonVariant.ghost,
+                                  icon: LucideIcons.eye,
+                                  onPressed: () =>
+                                      visualizarQuestao(context, q),
                                 ),
-                              ]),
-                            ),
-                            AppButton(
-                              label: 'Excluir',
-                              variant: ButtonVariant.outline,
-                              icon: LucideIcons.trash2,
-                              onPressed: () async {
-                                try {
-                                  await ApiService.deletarQuestao(q['idQuestaoObjetiva']);
-                                  await carregarQuestoes();
-                                } catch (e) {
-                                  debugPrint('Erro ao excluir questão: $e');
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Erro ao excluir questão')));
-                                }
-                              },
-                            ),
+                                const SizedBox(width: 8),
+                                AppButton(
+                                  label: 'Duplicar',
+                                  variant: ButtonVariant.outline,
+                                  icon: LucideIcons.copy,
+                                  onPressed: () => duplicarQuestao(context, q),
+                                ),
+                                const SizedBox(width: 8),
+                                AppButton(
+                                  label: 'Excluir',
+                                  variant: ButtonVariant.outline,
+                                  icon: LucideIcons.trash2,
+                                  onPressed: () async {
+                                    try {
+                                      await ApiService.deletarQuestao(
+                                          q['idQuestaoObjetiva']);
+                                      await carregarQuestoes();
+                                    } catch (e) {
+                                      debugPrint('Erro ao excluir questão: $e');
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Erro ao excluir questão')));
+                                    }
+                                  },
+                                ),
+                              ],
+                            )
                           ],
                         ),
                       );
@@ -276,6 +227,34 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// === VISUALIZAR QUESTÃO ===
+  void visualizarQuestao(BuildContext context, dynamic questao) async {
+    await showDialog(
+      context: context,
+      builder: (_) => VisualizarQuestaoDialog(questao: questao),
+    );
+  }
+
+  /// === DUPLICAR QUESTÃO ===
+  void duplicarQuestao(BuildContext context, dynamic questao) async {
+    await showDialog(
+      context: context,
+      builder: (_) => NovaQuestaoDialog(
+        open: true,
+        onOpenChange: (open) async {
+          if (!open) {
+            Navigator.pop(context);
+            await carregarQuestoes();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Questão duplicada com sucesso!')),
+            );
+          }
+        },
+        questaoOriginal: questao,
       ),
     );
   }

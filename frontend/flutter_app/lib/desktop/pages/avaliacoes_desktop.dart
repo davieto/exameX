@@ -5,10 +5,10 @@ import '../../services/api_service.dart';
 import '../layout/desktop_layout.dart';
 import '../widgets/ui/app_button.dart';
 import '../widgets/ui/app_card.dart';
-import '../widgets/ui/app_input.dart';
 import '../widgets/ui/app_dialog.dart';
-import 'questoes_desktop.dart';
-import '../widgets/adicionar_questoes_dialog.dart';
+import '../widgets/nova_questao_dialog.dart';
+import '../../mobile/widgets/questao_form_dialog.dart';
+
 
 class AvaliacoesDesktopPage extends StatefulWidget {
   const AvaliacoesDesktopPage({super.key});
@@ -28,109 +28,392 @@ class _AvaliacoesDesktopPageState extends State<AvaliacoesDesktopPage> {
   }
 
   Future<void> carregarProvas() async {
+    setState(() => carregando = true);
     try {
-      setState(() => carregando = true);
       final lista = await ApiService.listarProvas();
       setState(() {
         provas = lista;
-        carregando = false;
       });
-    } catch (e) {
-      debugPrint('Erro ao listar provas: $e');
+    } finally {
       setState(() => carregando = false);
     }
   }
 
-  /// === Criação com formulário ===
-  void _abrirFormularioNovaProva() {
+  /// === Criar nova avaliação (com seleção de questões e formulário completo) ===
+  void _abrirFormularioNovaProva() async {
     final tituloCtrl = TextEditingController();
     final descCtrl = TextEditingController();
+    List<int> selecionadas = [];
+    List<dynamic> todasQuestoes = [];
+    List<dynamic> questoesFiltradas = [];
+    bool carregando = true;
 
-    showDialog(
+    await showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Criar nova avaliação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: tituloCtrl,
-              decoration: const InputDecoration(labelText: 'Título da prova'),
+      barrierDismissible: false,
+      builder: (_) => StatefulBuilder(builder: (context, setModalState) {
+        Future<void> carregarQuestoes() async {
+          setModalState(() => carregando = true);
+          final lista = await ApiService.listarQuestoes();
+          setModalState(() {
+            todasQuestoes = lista;
+            questoesFiltradas = lista;
+            carregando = false;
+          });
+        }
+
+      // Carrega apenas uma vez
+        if (carregando) {
+          carregarQuestoes();
+        }
+
+        Future<void> abrirNovaQuestaoCompleta() async {
+  await showDialog(
+    context: context,
+    builder: (_) => NovaQuestaoDialog(
+      open: true,
+      onOpenChange: (open) async {
+        if (!open) {
+          Navigator.pop(context);
+          // Atualiza a lista de questões após criar nova
+          final lista = await ApiService.listarQuestoes();
+          setModalState(() {
+            todasQuestoes = lista;
+            questoesFiltradas = lista;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Nova questão criada com sucesso!")),
+          );
+        }
+      },
+    ),
+  );
+}
+
+        return AlertDialog(
+          title: const Text('Nova Avaliação'),
+          content: SizedBox(
+            width: 600,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: tituloCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Título da prova'),
+                ),
+                TextField(
+                  controller: descCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Descrição da prova'),
+                ),
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Selecione as questões"),
+                    TextButton.icon(
+                      onPressed: abrirNovaQuestaoCompleta,
+                      icon: const Icon(Icons.add),
+                      label: const Text("Nova Questão"),
+                    ),
+                  ],
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Pesquisar questão...',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (valor) {
+                    setModalState(() {
+                      questoesFiltradas = todasQuestoes
+                          .where((q) => q['titulo']
+                              .toString()
+                              .toLowerCase()
+                              .contains(valor.toLowerCase()))
+                          .toList();
+                    });
+                  },
+                ),
+                const SizedBox(height: 10),
+                if (carregando)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else
+                  SizedBox(
+                    height: 250,
+                    child: ListView.builder(
+                      itemCount: questoesFiltradas.length,
+                      itemBuilder: (_, i) {
+                        final q = questoesFiltradas[i];
+                        final marcado =
+                            selecionadas.contains(q['idQuestaoObjetiva']);
+                        return CheckboxListTile(
+                          value: marcado,
+                          title: Text(q['titulo']),
+                          onChanged: (v) {
+                            setModalState(() {
+                              if (v == true) {
+                                selecionadas.add(q['idQuestaoObjetiva']);
+                              } else {
+                                selecionadas.remove(q['idQuestaoObjetiva']);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
-            TextField(
-              controller: descCtrl,
-              decoration: const InputDecoration(labelText: 'Descrição'),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final dados = {
+                  'titulo': tituloCtrl.text,
+                  'descricao': descCtrl.text,
+                };
+                final provaId = await ApiService.criarProvaComRetorno(dados);
+                if (selecionadas.isNotEmpty) {
+                  await ApiService.adicionarQuestoesProva(provaId, selecionadas);
+                }
+                await carregarProvas();
+              },
+              child: const Text('Salvar'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              if (tituloCtrl.text.trim().isEmpty) return;
-              Navigator.pop(context);
-              await ApiService.criarProva(
-                tituloCtrl.text.trim(),
-                descCtrl.text.trim(),
-              );
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('Avaliação criada!')));
-              await carregarProvas();
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
+        );
+      }),
     );
   }
 
-  /// === Edição título/descrição ===
-  void _editarProva(Map prova) {
-    final tituloCtrl = TextEditingController(text: prova['titulo']);
-    final descCtrl = TextEditingController(text: prova['descricao'] ?? '');
+/// === Visualizar, reordenar, remover e adicionar novas questões ===
+void _verQuestoes(int idProva) async {
+  List<dynamic> questoesLocais = await ApiService.listarQuestoesDaProva(idProva);
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Editar avaliação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+  showDialog(
+    context: context,
+    builder: (_) => StatefulBuilder(builder: (ctx, setState) {
+      Future<void> recarregar() async {
+        final novas = await ApiService.listarQuestoesDaProva(idProva);
+        setState(() => questoesLocais = List.of(novas));
+      }
+
+      // === Criar questão nova completa e adicionar à prova ===
+Future<void> criarNovaQuestaoEAdicionar() async {
+  await showDialog(
+    context: context,
+    builder: (_) => NovaQuestaoDialog(
+      open: true,
+      onOpenChange: (open) async {
+        if (!open) {
+          Navigator.pop(context);
+          // pega a última questão criada e adiciona à prova
+          final todas = await ApiService.listarQuestoes();
+          if (todas.isNotEmpty) {
+            final nova = todas.last;
+            await ApiService.adicionarQuestoesProva(
+                idProva, [nova['idQuestaoObjetiva']]);
+            await recarregar();
+          }
+        }
+      },
+    ),
+  );
+}
+
+      // === Adicionar questão existente à prova ===
+      Future<void> adicionarQuestaoExistente() async {
+        final todasQuestoes = await ApiService.listarQuestoes();
+        final selecionadas = <int>[];
+
+        await showDialog(
+          context: context,
+          builder: (_) => StatefulBuilder(builder: (ctx2, setModal) {
+            var filtradas = todasQuestoes;
+            return AlertDialog(
+              title: const Text("Adicionar Questões Existentes"),
+              content: SizedBox(
+                width: 500,
+                height: 400,
+                child: Column(
+                  children: [
+                    TextField(
+                      decoration: const InputDecoration(
+                        hintText: "Pesquisar questão por título...",
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (valor) {
+                        setModal(() {
+                          filtradas = todasQuestoes
+                              .where((q) => q['titulo']
+                                  .toString()
+                                  .toLowerCase()
+                                  .contains(valor.toLowerCase()))
+                              .toList();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filtradas.length,
+                        itemBuilder: (_, i) {
+                          final q = filtradas[i];
+                          final marcado = selecionadas.contains(q['idQuestaoObjetiva']);
+                          return CheckboxListTile(
+                            value: marcado,
+                            title: Text(q['titulo']),
+                            onChanged: (v) {
+                              setModal(() {
+                                if (v == true) {
+                                  selecionadas.add(q['idQuestaoObjetiva']);
+                                } else {
+                                  selecionadas.remove(q['idQuestaoObjetiva']);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx2),
+                    child: const Text("Cancelar")),
+                ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(ctx2);
+                      if (selecionadas.isNotEmpty) {
+                        await ApiService.adicionarQuestoesProva(
+                            idProva, selecionadas);
+                        await recarregar();
+                      }
+                    },
+                    child: const Text("Adicionar")),
+              ],
+            );
+          }),
+        );
+      }
+
+      // === Diálogo principal ===
+      return AlertDialog(
+        title: Row(
           children: [
-            TextField(
-              controller: tituloCtrl,
-              decoration: const InputDecoration(labelText: 'Título'),
+            const Expanded(child: Text('Questões da Avaliação')),
+            TextButton.icon(
+              onPressed: criarNovaQuestaoEAdicionar,
+              icon: const Icon(Icons.add),
+              label: const Text("Nova Questão"),
             ),
-            TextField(
-              controller: descCtrl,
-              decoration: const InputDecoration(labelText: 'Descrição'),
+            const SizedBox(width: 10),
+            TextButton.icon(
+              onPressed: adicionarQuestaoExistente,
+              icon: const Icon(Icons.search),
+              label: const Text("Procurar"),
             ),
           ],
         ),
+        content: SizedBox(
+          width: 700,
+          height: 440,
+          child: questoesLocais.isEmpty
+              ? const Center(child: Text("Nenhuma questão vinculada"))
+              : ReorderableListView(
+                  onReorder: (oldIndex, newIndex) async {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final item = questoesLocais.removeAt(oldIndex);
+                      questoesLocais.insert(newIndex, item);
+                    });
+                    final novaOrdem = questoesLocais
+                        .map<int>((q) => q['idQuestaoObjetiva'] as int)
+                        .toList();
+                    await ApiService.atualizarOrdemQuestoes(idProva, novaOrdem);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Ordem atualizada")),
+                    );
+                  },
+                  children: [
+                    for (int i = 0; i < questoesLocais.length; i++)
+                      Card(
+                        key: ValueKey(questoesLocais[i]['idQuestaoObjetiva']),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "${i + 1}. ${questoesLocais[i]['titulo']}",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: "Remover questão da prova",
+                                    icon: const Icon(Icons.delete_outline),
+                                    onPressed: () async {
+                                      await ApiService.removerQuestaoProva(
+                                        idProva,
+                                        questoesLocais[i]['idQuestaoObjetiva'],
+                                      );
+                                      await recarregar();
+                                    },
+                                  ),
+                                ],
+                              ),
+                              for (final alt in questoesLocais[i]['alternativas'])
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 14),
+                                  child: Text(
+                                    '• ${alt['texto']}',
+                                    style: TextStyle(
+                                      color: alt['afirmativa'] == 1
+                                          ? Colors.green.shade800
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ApiService.atualizarProva(
-                prova['idProva'],
-                {
-                  'titulo': tituloCtrl.text.trim(),
-                  'descricao': descCtrl.text.trim(),
-                },
-              );
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('Prova atualizada!')));
-              await carregarProvas();
-            },
-            child: const Text('Salvar'),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }),
+  );
+}
 
-  /// === Exclusão ===
-  void _excluirProva(int id) {
+  /// === Excluir prova ===
+  void _excluirProva(int id) async {
     AppDialog.show(
       context,
       title: 'Excluir prova?',
@@ -139,45 +422,14 @@ class _AvaliacoesDesktopPageState extends State<AvaliacoesDesktopPage> {
       cancelText: 'Cancelar',
       onConfirm: () async {
         await ApiService.deletarProva(id);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Prova excluída!")));
         await carregarProvas();
       },
-    );
-  }
-
-  /// === Visualização (lista de questões) ===
-  void _verQuestoes(int idProva) async {
-    final questoes = await ApiService.listarQuestoesDaProva(idProva);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Questões da Avaliação'),
-        content: SizedBox(
-          width: 500,
-          child: questoes.isEmpty
-              ? const Text("Nenhuma questão vinculada.")
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: questoes
-                      .map((q) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Text('•  ${q['titulo']}'),
-                          ))
-                      .toList(),
-                ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
-        ],
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme;
-
     return DesktopLayout(
       content: Padding(
         padding: const EdgeInsets.all(24),
@@ -197,110 +449,82 @@ class _AvaliacoesDesktopPageState extends State<AvaliacoesDesktopPage> {
               ),
             ]),
             const SizedBox(height: 24),
-            carregando
-                ? const Center(child: CircularProgressIndicator())
-                : provas.isEmpty
-                    ? Center(
-                        child: Text('Nenhuma prova encontrada',
-                            style: TextStyle(color: color.onSurfaceVariant)),
-                      )
-                    : Expanded(
-                        child: ListView.separated(
-                          itemCount: provas.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
-                          itemBuilder: (_, i) {
-                            final prova = provas[i];
-                            return AppCard(
-                              padding: const EdgeInsets.all(20),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(prova['titulo'] ?? 'Sem título',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium
-                                                ?.copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: color.onSurface)),
-                                        if (prova['descricao'] != null)
-                                          Text(prova['descricao'],
-                                              style: TextStyle(
-                                                  color: color.onSurfaceVariant))
-                                      ],
-                                    ),
-                                  ),
-                                  Row(children: [
-                                    IconButton(
-                                      tooltip: 'Visualizar questões',
-                                      icon: const Icon(LucideIcons.eye),
-                                      onPressed: () => _verQuestoes(prova['idProva']),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Editar',
-                                      icon: const Icon(LucideIcons.edit2),
-                                      onPressed: () => _editarProva(prova),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Excluir',
-                                      icon: const Icon(LucideIcons.trash2),
-                                      onPressed: () => _excluirProva(prova['idProva']),
-                                    ),
-                                    IconButton(
-  tooltip: 'Gerenciar Questões',
-  icon: const Icon(LucideIcons.listPlus),
-  onPressed: () {
-    showDialog(
-      context: context,
-      builder: (_) => AdicionarQuestoesDialog(
-        idProva: prova['idProva'],
-        onSaved: carregarProvas,
-      ),
-    );
-  },
-),
-const SizedBox(width: 12),
-AppButton(
-  label: 'PDF',
-  variant: ButtonVariant.outline,
-  icon: LucideIcons.fileText,
-  onPressed: () async {
-    final bytes = await ApiService.gerarPdf(prova['idProva']);
-    await FileSaver.instance.saveFile(
-      name: 'prova_${prova['idProva']}',
-      bytes: bytes,
-      ext: 'pdf',
-    );
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('PDF gerado!')));
-  },
-),
-                                    const SizedBox(width: 12),
-                                    AppButton(
-                                      label: 'PDF',
-                                      variant: ButtonVariant.outline,
-                                      icon: LucideIcons.fileText,
-                                      onPressed: () async {
-                                        final bytes = await ApiService.gerarPdf(prova['idProva']);
-                                        await FileSaver.instance.saveFile(
-  name: 'prova_${prova['idProva']}',
-  bytes: bytes,
-  ext: 'pdf',
-);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('PDF gerado!')));
-                                      },
-                                    ),
-                                  ])
-                                ],
+            if (carregando)
+              const Center(child: CircularProgressIndicator())
+            else if (provas.isEmpty)
+              Center(
+                child: Text('Nenhuma prova encontrada',
+                    style: TextStyle(color: color.onSurfaceVariant)),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  itemCount: provas.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) {
+                    final prova = provas[i];
+                    return AppCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(prova['titulo'] ?? 'Sem título',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: color.onSurface)),
+                                if (prova['descricao'] != null)
+                                  Text(prova['descricao'],
+                                      style: TextStyle(
+                                          color: color.onSurfaceVariant)),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                tooltip: 'Visualizar questões',
+                                icon: const Icon(LucideIcons.eye),
+                                onPressed: () => _verQuestoes(prova['idProva']),
                               ),
-                            );
-                          },
-                        ),
-                      )
+                              IconButton(
+                                tooltip: 'Excluir',
+                                icon: const Icon(LucideIcons.trash2),
+                                onPressed: () =>
+                                    _excluirProva(prova['idProva']),
+                              ),
+                              AppButton(
+                                label: 'PDF',
+                                variant: ButtonVariant.outline,
+                                icon: LucideIcons.fileText,
+                                onPressed: () async {
+                                  final bytes = await ApiService.gerarPdf(
+                                      prova['idProva']);
+                                  await FileSaver.instance.saveFile(
+                                    name: 'prova_${prova['idProva']}',
+                                    bytes: bytes,
+                                    ext: 'pdf',
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('PDF gerado com sucesso')));
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

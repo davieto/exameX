@@ -30,28 +30,37 @@ class ApiService {
   }
 
   static Future<void> criarQuestaoObjetiva(Map<String, dynamic> dados) async {
-    var request =
-        http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/objetivas/'));
-    request.fields['titulo'] = dados['titulo'];
-    request.fields['idDificuldade'] = dados['idDificuldade'].toString();
-    request.fields['idProfessor'] = dados['idProfessor'].toString();
-    request.fields['alternativas'] = jsonEncode(dados['alternativas']);
-
-    if (dados['imagem'] != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath('imagem', dados['imagem']),
-      );
-    }
-
-    final res = await request.send();
-    if (res.statusCode < 200 || res.statusCode > 299) {
-      throw Exception('Erro ao criar questão');
-    }
+  var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/objetivas/'));
+  
+  request.fields['titulo'] = dados['titulo'] ?? '';
+  request.fields['descricao'] = dados['descricao'] ?? '';
+  request.fields['texto'] = dados['texto'] ?? '';
+  request.fields['tipo'] = dados['tipo'] ?? 'multipla';
+  request.fields['acesso'] = dados['acesso'] ?? 'privada';
+  request.fields['idDificuldade'] = dados['idDificuldade'].toString();
+  request.fields['idProfessor'] = dados['idProfessor'].toString();
+  request.fields['alternativas'] = jsonEncode(dados['alternativas']);
+  
+  // 🟩 Enviar curso e disciplina corretamente
+  if (dados['idCurso'] != null) {
+    request.fields['idCurso'] = dados['idCurso'].toString();
+  }
+  if (dados['idMateria'] != null) {
+    request.fields['idMateria'] = dados['idMateria'].toString();
   }
 
+  if (dados['imagem'] != null) {
+    request.files.add(await http.MultipartFile.fromPath('imagem', dados['imagem']));
+  }
+
+  final res = await request.send();
+  if (res.statusCode < 200 || res.statusCode > 299) {
+    throw Exception('Erro ao criar questão (${res.statusCode})');
+  }
+}
+
   static Future<void> deletarQuestao(int id) async {
-    final res =
-        await http.delete(Uri.parse('$baseUrl/questoes/objetivas/$id'));
+    final res = await http.delete(Uri.parse('$baseUrl/questoes/objetivas/$id'));
     if (res.statusCode != 200) {
       throw Exception('Erro ao excluir questão: ${res.statusCode}');
     }
@@ -121,7 +130,7 @@ class ApiService {
     throw Exception('Erro ao carregar estatísticas: ${res.statusCode}');
   }
 
-    // ========= PROVAS (AÇÕES DE GERENCIAMENTO) =========
+  // ========= PROVAS (AÇÕES DE GERENCIAMENTO) =========
 
   static Future<void> atualizarProva(int id, Map<String, dynamic> dados) async {
     final res = await http.put(
@@ -145,5 +154,57 @@ class ApiService {
     final res = await http.get(Uri.parse('$baseUrl/provas/$idProva/questoes'));
     if (res.statusCode == 200) return jsonDecode(res.body);
     throw Exception('Erro ao buscar questões da prova (${res.statusCode})');
+  }
+
+  static Future<int> criarProvaComRetorno(Map<String, dynamic> dados) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/provas/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(dados),
+    );
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      final obj = jsonDecode(res.body);
+      return obj['idProva'];
+    }
+    throw Exception('Erro ao criar prova (${res.statusCode})');
+  }
+
+// === Atualizar ordem das questões ===
+  static Future<void> atualizarOrdemQuestoes(
+      int idProva, List<int> novaOrdem) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/provas/$idProva/ordenar'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(novaOrdem),
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Erro ao atualizar ordem (${res.statusCode})');
+    }
+  }
+
+// === Remover questão da prova ===
+  static Future<void> removerQuestaoProva(int idProva, int idQuestao) async {
+    final res = await http.delete(
+        Uri.parse('$baseUrl/provas/$idProva/remover-questao/$idQuestao'));
+    if (res.statusCode != 200) {
+      throw Exception('Erro ao remover questão da prova (${res.statusCode})');
+    }
+  }
+
+// === CURSOS E DISCIPLINAS ===
+  static Future<List<dynamic>> listarCursos() async {
+    final res = await http.get(Uri.parse('$baseUrl/public/cursos'));
+    if (res.statusCode == 200) {
+      return jsonDecode(utf8.decode(res.bodyBytes));
+    }
+    throw Exception('Erro ao carregar cursos (${res.statusCode})');
+  }
+
+  static Future<List<dynamic>> listarMaterias() async {
+    final res = await http.get(Uri.parse('$baseUrl/public/materias'));
+    if (res.statusCode == 200) {
+      return jsonDecode(utf8.decode(res.bodyBytes));
+    }
+    throw Exception('Erro ao carregar matérias (${res.statusCode})');
   }
 }

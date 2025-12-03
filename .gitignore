@@ -1,0 +1,4 @@
+# Flutter / Android build
+frontend/flutter_app/build/
+frontend/flutter_app/android/app/build/
+**/build/

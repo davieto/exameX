@@ -9,14 +9,27 @@ from app.models.questao_objetiva_model import QuestaoObjetiva
 from app.models.alternativa_model import Alternativa
 from app.schemas.questao_schema import QuestaoResponse
 from app.services.import_service import importar_questoes_excel
+from app.models.assunto_model import Assunto
+from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/questoes", tags=["Questões"])
 
 # === LISTAR ===
+
 @router.get("/objetivas/", response_model=List[QuestaoResponse])
 def listar_questoes_objetivas(db: Session = Depends(get_db)):
-    """Lista todas as questões objetivas cadastradas."""
-    return db.query(QuestaoObjetiva).all()
+    """Lista todas as questões objetivas com curso, matéria, alternativas e assuntos."""
+    questoes = (
+        db.query(QuestaoObjetiva)
+        .options(
+            joinedload(QuestaoObjetiva.curso),
+            joinedload(QuestaoObjetiva.materia),
+            joinedload(QuestaoObjetiva.alternativas),
+            joinedload(QuestaoObjetiva.assuntos),
+        )
+        .all()
+    )
+    return questoes
 
 # === CRIAR ===
 @router.post("/objetivas/", response_model=QuestaoResponse)
@@ -25,25 +38,49 @@ async def criar_questao_objetiva(
     idDificuldade: int = Form(...),
     idProfessor: int = Form(...),
     alternativas: str = Form(...),
+    descricao: str | None = Form(None),
+    texto: str | None = Form(None),
+    tipo: str | None = Form('multipla'),
+    acesso: str | None = Form('privada'),
+    linhas_texto: int | None = Form(0),
+    linhas_desenho: int | None = Form(0),
+    idCurso: int | None = Form(None),
+    idMateria: int | None = Form(None),
+    assuntos: str | None = Form(None),
     imagem: UploadFile | None = File(default=None),
     db: Session = Depends(get_db),
 ):
-    """Cria uma nova questão objetiva manualmente (rota pública)."""
+    """Cria uma nova questão objetiva completa (com alternativas e assuntos)."""
+
     img_bytes = None
     if imagem:
         img_bytes = await imagem.read()
 
-    q = QuestaoObjetiva(
+    # === Cria a questão principal ===
+    nova_questao = QuestaoObjetiva(
         titulo=titulo,
+        descricao=descricao,
+        texto=texto,
+        tipo=tipo,
+        acesso=acesso,
+        linhas_texto=linhas_texto,
+        linhas_desenho=linhas_desenho,
+        idCurso=idCurso,
+        idMateria=idMateria,
         idDificuldade=idDificuldade,
         idProfessor=idProfessor,
-        imagem=img_bytes
+        imagem=img_bytes,
     )
-    db.add(q)
-    db.flush()
 
-    # Valida as alternativas
-    alt_list = json.loads(alternativas)
+    db.add(nova_questao)
+    db.flush()  # gera idQuestaoObjetiva antes de criar alternativas
+
+    # === Validação e criação das alternativas ===
+    try:
+        alt_list = json.loads(alternativas)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao decodificar alternativas: {e}")
+
     if len(alt_list) != 5:
         raise HTTPException(status_code=400, detail="Cada questão deve conter exatamente 5 alternativas.")
     corretas = [a for a in alt_list if a.get("afirmativa") == 1]
@@ -52,15 +89,26 @@ async def criar_questao_objetiva(
 
     for alt in alt_list:
         db.add(Alternativa(
-            idQuestaoObjetiva=q.idQuestaoObjetiva,
+            idQuestaoObjetiva=nova_questao.idQuestaoObjetiva,
             texto=alt["texto"],
             afirmativa=alt["afirmativa"]
         ))
 
-    db.commit()
-    db.refresh(q)
-    return q
+    # === Criação dos assuntos (tags) ===
+    if assuntos:
+        try:
+            lista_assuntos = json.loads(assuntos)
+            for nome in lista_assuntos:
+                db.add(Assunto(
+                    idQuestaoObjetiva=nova_questao.idQuestaoObjetiva,
+                    nome=nome if isinstance(nome, str) else str(nome)
+                ))
+        except Exception as e:
+            print(f"Erro ao processar assuntos: {e}")
 
+    db.commit()
+    db.refresh(nova_questao)
+    return nova_questao
 # === ATUALIZAR ===
 @router.put("/objetivas/{id}")
 async def atualizar_questao_objetiva(

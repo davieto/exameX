@@ -4,7 +4,7 @@ import '../../services/api_service.dart';
 import '../widgets/ui/app_button.dart';
 import '../widgets/ui/app_card.dart';
 import '../widgets/ui/app_input.dart';
-import 'questao_form_dialog.dart'; // mesmo formulário usado no mobile, adaptável
+import '../../mobile/widgets/questao_form_dialog.dart';
 
 class AdicionarQuestoesDialog extends StatefulWidget {
   final int idProva;

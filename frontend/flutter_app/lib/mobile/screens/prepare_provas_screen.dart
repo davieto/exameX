@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../widgets/mobile_header.dart';
-import '../widgets/gradient_button.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/prova_form_dialog.dart';
 import '../widgets/adicionar_questoes_dialog.dart';
