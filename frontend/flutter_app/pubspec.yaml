@@ -3,28 +3,31 @@ description: Sistema de Avaliações Flutter
 publish_to: "none"
 
 environment:
-  sdk: ^3.5.0
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+
+  # Ícones e UI
   cupertino_icons: ^1.0.6
   google_fonts: ^6.2.1
-  shared_preferences: ^2.3.2
-  fl_chart: ^0.68.0
-  http: ^1.2.0
-  csv: ^6.0.0
-  pdf: ^3.11.1
-  printing: ^5.11.0
-<<<<<<< HEAD
   lucide_icons: ^0.257.0
 
-  file_saver: ^0.2.12
+  # Ferramentas de armazenamento e rede
+  shared_preferences: ^2.3.2
+  http: ^1.2.0
+  csv: ^6.0.0
   file_picker: ^8.1.4
-  image_picker: ^1.1.2
-=======
-  lucide_icons: 0.257.0
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
+  file_saver: ^0.2.12
+  camera: ^0.11.0+2
+  web_socket_channel: ^2.4.0
+  image_picker: ^1.0.7
+
+  # PDFs e gráficos
+  fl_chart: ^0.68.0
+  pdf: ^3.11.1
+  printing: ^5.11.0
 
 flutter:
   uses-material-design: true

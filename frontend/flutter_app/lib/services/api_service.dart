@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import 'package:image_picker/image_picker.dart';
+import 'dart:async';
+import 'dart:io' if (dart.library.html) 'dart:html' as html; 
 
 class ApiService {
   // Detecta automaticamente plataforma e define baseUrl
@@ -75,6 +78,7 @@ class ApiService {
       throw Exception('Erro ao importar CSV');
     }
   }
+
 
   // ========= PROVAS =========
 
@@ -207,4 +211,20 @@ class ApiService {
     }
     throw Exception('Erro ao carregar matérias (${res.statusCode})');
   }
+
+  static Future<Map<String, dynamic>> corrigirGabarito(XFile file) async {
+  final uri = Uri.parse('$baseUrl/correcao/gabarito');
+  final request = http.MultipartRequest('POST', uri);
+  request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+  final response = await request.send();
+  final body = await response.stream.bytesToString();
+
+  if (response.statusCode == 200) {
+    return jsonDecode(body);
+  } else {
+    throw Exception('Erro ao corrigir (${response.statusCode}): $body');
+  }
+}
+
 }

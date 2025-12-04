@@ -1,41 +1,108 @@
-# Python
+# ===============================
+# 🐍 Python / FastAPI
+# ===============================
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.pyd
+*.pyo
 .Python
 
-# FastAPI / venv
+# Virtual environments
 .venv/
 venv/
-.env
+env/
+ENV/
+pip-wheel-metadata/
 
-# Flutter / Android build
-*.log
+# Environment files
+.env
+*.env
+
+# PyInstaller / dist
 build/
-android/app/build/
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/.symlinks/
-ios/build/
+dist/
+*.spec
+
+# Logs / temp
+*.log
+*.tmp
+*.swp
+*.swo
+
+# ===============================
+# 🚀 Backend specifics
+# ===============================
+# If using test reports or build caches
+htmlcov/
+.tox/
+.coverage
+*.coverage
+.cache/
+.pytest_cache/
+.mypy_cache/
+__pycache__/
+.devcontainer/
+
+# ===============================
+# 💙 Flutter / Dart
+# ===============================
+# Flutter & Dart intermediates
+.dart_tool/
+.packages
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
+
+# Flutter build directories
+frontend/flutter_app/build/
+frontend/flutter_app/.dart_tool/
+frontend/flutter_app/ios/build/
+frontend/flutter_app/android/app/build/
+frontend/flutter_app/linux/
+frontend/flutter_app/macos/
+frontend/flutter_app/windows/
+
+# Flutter lock files (optional — remove if you want lock consistency)
 pubspec.lock
 
-# Flutter intermediate files
-frontend/flutter_app/android/app/build/
-frontend/flutter_app/build/
-frontend/flutter_app/ios/build/
+# Flutter cache/artifacts
+**/*.dill
+**/*.so
+**/*.aab
+**/*.apk
 
-# APKs, clusters de build, libs binárias
-*.apk
-*.aab
-*.so
-*.dll
-*.exe
+# ===============================
+# 📱 Android / iOS platforms
+# ===============================
+android/.gradle/
+android/.idea/
+android/local.properties
+ios/Flutter/.last_build_id
+ios/.symlinks/
 
-# IDE specifics
+# ===============================
+# 💻 Editors / OS
+# ===============================
+# VSCode / JetBrains
 .vscode/
 .idea/
 *.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===============================
+# 🧠 Custom extras
+# ===============================
+# Debug images or temporary data
+*.jpg
+*.jpeg
+*.png
+*.pdf
+backend/thresh_debug.jpg

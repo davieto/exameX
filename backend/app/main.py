@@ -51,6 +51,7 @@ from app.routes import (
     admin_cursos_router,
     admin_materias_router,
     admin_turmas_router,
+    omr_stream_router,
 )
 
 app.include_router(auth_router.router)
@@ -60,6 +61,7 @@ app.include_router(pdf_router.router)
 app.include_router(qr_router.router)
 app.include_router(estatisticas_router.router)
 app.include_router(public_router.router)
+app.include_router(omr_stream_router.router)
 
 # === Rotas Administrativas ===
 app.include_router(admin_professores_router.router)
