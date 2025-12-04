@@ -1,10 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-<<<<<<< HEAD
 from sqlalchemy.dialects.mysql import LONGBLOB
-=======
-from sqlalchemy.dialects.mysql import LONGBLOB 
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 from app.db import Base
 
 class QuestaoObjetiva(Base):
@@ -13,7 +9,6 @@ class QuestaoObjetiva(Base):
     idQuestaoObjetiva = Column(Integer, primary_key=True, index=True)
     idDificuldade = Column(Integer, ForeignKey("Dificuldade.idDificuldade"))
     idProfessor = Column(Integer, ForeignKey("Professor.idProfessor"))
-<<<<<<< HEAD
     idCurso = Column(Integer, ForeignKey("Curso.idCurso"), nullable=True)
     idMateria = Column(Integer, ForeignKey("Materia.idMateria"), nullable=True)
 
@@ -33,13 +28,3 @@ class QuestaoObjetiva(Base):
     materia = relationship("Materia")
     alternativas = relationship("Alternativa", back_populates="questao", cascade="all, delete-orphan")
     assuntos = relationship("Assunto", back_populates="questao", cascade="all, delete-orphan")
-=======
-    titulo = Column(String(500))
-    imagem = Column(LONGBLOB, nullable=True)
-
-    alternativas = relationship(
-        "Alternativa",
-        back_populates="questao",
-        cascade="all, delete-orphan"
-    )
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
