@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import '../../services/api_service.dart';
 import '../widgets/mobile_header.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -53,34 +52,10 @@ class _PrepareProvasScreenState extends State<PrepareProvasScreen> {
     });
   }
 
-=======
-import '../widgets/responsive_layout.dart';
-import '../widgets/mobile_header.dart';
-import '../widgets/create_evaluation_card.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/bottom_nav_bar.dart';
-
-class PrepareProvasScreen extends StatelessWidget {
-  const PrepareProvasScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ResponsiveLayout(
-      mobile: _PrepareProvasMobile(),
-      desktop: const Scaffold(
-        body: Center(child: Text('Versão desktop em construção')),
-      ),
-    );
-  }
-}
-
-class _PrepareProvasMobile extends StatelessWidget {
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-<<<<<<< HEAD
         child: Column(children: [
           const MobileHeader(),
           Expanded(
@@ -124,30 +99,6 @@ class _PrepareProvasMobile extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: _abrirForm,
-=======
-        child: Column(
-          children: [
-            const MobileHeader(),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: ListView(
-                  children: [
-                    const CreateEvaluationCard(),
-                    const SizedBox(height: 16),
-                    GradientButton(
-                      icon: const Icon(Icons.history, color: Colors.black),
-                      label: "VER AVALIAÇÕES ANTERIORES",
-                      onPressed: () {},
-                      darkText: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );

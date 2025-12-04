@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-# prova_questao_dissertativa_model.py
->>>>>>> 9c82ab519e76e2aab86085aadf3acb3552d9df9c
 from sqlalchemy import Column, Integer, ForeignKey
 from app.db import Base
 
