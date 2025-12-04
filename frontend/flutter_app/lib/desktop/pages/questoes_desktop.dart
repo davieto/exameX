@@ -61,24 +61,29 @@ class _QuestoesDesktopPageState extends State<QuestoesDesktopPage> {
   }
 
   /// ======== IMPORTAÇÃO CSV =========
-  Future<void> importarQuestoes() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
-    if (result != null) {
-      final filePath = result.files.single.path;
-      if (filePath != null) {
-        try {
-          await ApiService.importarQuestoesCsv(filePath);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Importação concluída com sucesso!')));
-          await carregarQuestoes();
-        } catch (e) {
-          debugPrint('Erro ao importar questões: $e');
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Erro ao importar CSV')));
-        }
-      }
-    }
+ Future<void> importarQuestoes() async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['csv', 'xlsx', 'xls'],
+  );
+  if (result == null) return;
+
+  final filePath = result.files.single.path;
+  if (filePath == null) return;
+
+  try {
+    await ApiService.importarQuestoes(filePath);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Importação concluída com sucesso!')),
+    );
+    await carregarQuestoes();
+  } catch (e) {
+    debugPrint('Erro ao importar: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao importar: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

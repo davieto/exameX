@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html' as html; 
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'package:http_parser/http_parser.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Detecta automaticamente plataforma e define baseUrl
@@ -33,34 +33,68 @@ class ApiService {
   }
 
   static Future<void> criarQuestaoObjetiva(Map<String, dynamic> dados) async {
-  var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/objetivas/'));
-  
-  request.fields['titulo'] = dados['titulo'] ?? '';
-  request.fields['descricao'] = dados['descricao'] ?? '';
-  request.fields['texto'] = dados['texto'] ?? '';
-  request.fields['tipo'] = dados['tipo'] ?? 'multipla';
-  request.fields['acesso'] = dados['acesso'] ?? 'privada';
-  request.fields['idDificuldade'] = dados['idDificuldade'].toString();
-  request.fields['idProfessor'] = dados['idProfessor'].toString();
-  request.fields['alternativas'] = jsonEncode(dados['alternativas']);
-  
-  // 🟩 Enviar curso e disciplina corretamente
-  if (dados['idCurso'] != null) {
-    request.fields['idCurso'] = dados['idCurso'].toString();
-  }
-  if (dados['idMateria'] != null) {
-    request.fields['idMateria'] = dados['idMateria'].toString();
-  }
+    final uri = Uri.parse('$baseUrl/questoes/objetivas/');
+    final request = http.MultipartRequest('POST', uri);
 
-  if (dados['imagem'] != null) {
-    request.files.add(await http.MultipartFile.fromPath('imagem', dados['imagem']));
-  }
+    // Campos básicos
+    request.fields['titulo'] = dados['titulo'] ?? '';
+    request.fields['descricao'] = dados['descricao'] ?? '';
+    request.fields['texto'] = dados['texto'] ?? '';
+    request.fields['tipo'] = dados['tipo'] ?? 'multipla';
+    request.fields['acesso'] = dados['acesso'] ?? 'privada';
+    request.fields['idDificuldade'] = dados['idDificuldade'].toString();
+    request.fields['idProfessor'] = dados['idProfessor'].toString();
 
-  final res = await request.send();
-  if (res.statusCode < 200 || res.statusCode > 299) {
-    throw Exception('Erro ao criar questão (${res.statusCode})');
+    // Campos opcionais
+    if (dados['idCurso'] != null) {
+      request.fields['idCurso'] = dados['idCurso'].toString();
+    }
+    if (dados['idMateria'] != null) {
+      request.fields['idMateria'] = dados['idMateria'].toString();
+    }
+
+    // Alternativas e assuntos (sempre string JSON)
+    request.fields['alternativas'] = jsonEncode(dados['alternativas']);
+    request.fields['assuntos'] = jsonEncode(dados['assuntos'] ?? []);
+
+    // ✅ Upload de imagem - compatível com web e desktop
+    try {
+      if (dados['imagem'] != null) {
+        // se rodando no navegador (Edge/Chrome)
+        if (kIsWeb && dados['imagem'] is XFile) {
+          final XFile file = dados['imagem'];
+          final bytes = await file.readAsBytes();
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'imagem',
+              bytes,
+              filename: file.name,
+            ),
+          );
+        }
+        // se for desktop ou mobile
+        else if (!kIsWeb && dados['imagem'].toString().isNotEmpty) {
+          final filePath = dados['imagem'];
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'imagem',
+              filePath,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Falha ao anexar imagem: $e');
+    }
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+          'Erro ao criar questão (${response.statusCode}): $responseBody');
+    }
   }
-}
 
   static Future<void> deletarQuestao(int id) async {
     final res = await http.delete(Uri.parse('$baseUrl/questoes/objetivas/$id'));
@@ -69,16 +103,21 @@ class ApiService {
     }
   }
 
-  static Future<void> importarQuestoesCsv(String filePath) async {
-    var req =
-        http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/importar'));
-    req.files.add(await http.MultipartFile.fromPath('arquivo', filePath));
-    final res = await req.send();
-    if (res.statusCode < 200 || res.statusCode > 299) {
-      throw Exception('Erro ao importar CSV');
-    }
-  }
+static Future<void> importarQuestoes(String filePath) async {
+  var request =
+      http.MultipartRequest('POST', Uri.parse('$baseUrl/questoes/importar'));
 
+  // Adiciona o arquivo selecionado
+  request.files.add(await http.MultipartFile.fromPath('arquivo', filePath));
+
+  final response = await request.send();
+  final body = await response.stream.bytesToString();
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    debugPrint('✅ Importação feita: $body');
+  } else {
+    throw Exception('Erro ao importar questões: ${response.statusCode} - $body');
+  }
+}
 
   // ========= PROVAS =========
 
@@ -213,18 +252,17 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> corrigirGabarito(XFile file) async {
-  final uri = Uri.parse('$baseUrl/correcao/gabarito');
-  final request = http.MultipartRequest('POST', uri);
-  request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    final uri = Uri.parse('$baseUrl/correcao/gabarito');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
-  final response = await request.send();
-  final body = await response.stream.bytesToString();
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
 
-  if (response.statusCode == 200) {
-    return jsonDecode(body);
-  } else {
-    throw Exception('Erro ao corrigir (${response.statusCode}): $body');
+    if (response.statusCode == 200) {
+      return jsonDecode(body);
+    } else {
+      throw Exception('Erro ao corrigir (${response.statusCode}): $body');
+    }
   }
-}
-
 }

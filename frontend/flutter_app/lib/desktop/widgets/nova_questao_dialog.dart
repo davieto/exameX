@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';  
 
 class NovaQuestaoDialog extends StatefulWidget {
   final bool open;
@@ -41,6 +43,7 @@ class _NovaQuestaoDialogState extends State<NovaQuestaoDialog> {
   List<dynamic> materias = [];
   int? cursoSelecionado;
   int? materiaSelecionada;
+  XFile? imagemSelecionada;
 
   @override
   void initState() {
@@ -187,7 +190,7 @@ class _NovaQuestaoDialogState extends State<NovaQuestaoDialog> {
                         ),
                         buildTextArea(
                             label: "Texto da Questão", controller: textoCtrl),
-                        buildCheckboxImageField(),
+                        buildImagemField(color),
                         if (tipoQuestao == 'multipla') buildAlternativas(),
                         buildNumberField(
                             label: "Linhas para texto",
@@ -424,19 +427,41 @@ class _NovaQuestaoDialogState extends State<NovaQuestaoDialog> {
     );
   }
 
-  Widget buildCheckboxImageField() {
-    final color = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        SizedBox(
-            width: 140,
-            child: Text("Imagem", style: TextStyle(color: color.onSurface))),
-        Checkbox(
-          value: hasImage,
-          onChanged: (v) => setState(() => hasImage = v ?? false),
-        ),
-        const Text("Possui imagem?"),
-      ],
+// === Imagem ===
+  Widget buildImagemField(ColorScheme color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          SizedBox(
+              width: 140,
+              child: Text("Imagem", style: TextStyle(color: color.onSurface))),
+          Expanded(
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final img =
+                        await picker.pickImage(source: ImageSource.gallery);
+                    if (img != null) {
+                      setState(() => imagemSelecionada = img);
+                    }
+                  },
+                  icon: const Icon(Icons.image),
+                  label: const Text("Selecionar Imagem"),
+                ),
+                const SizedBox(width: 12),
+                if (imagemSelecionada != null)
+                  Text(
+                    imagemSelecionada!.name,
+                    style: TextStyle(color: color.primary, fontSize: 12),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -529,35 +554,51 @@ class _NovaQuestaoDialogState extends State<NovaQuestaoDialog> {
   // ==========================================================
   // === SALVAR QUESTÃO
   // ==========================================================
-  Future<void> salvarQuestao() async {
-    // gera alternativas com base no que está na tela
-    final letras = ['a', 'b', 'c', 'd', 'e'];
-    final alternativas = List.generate(letras.length, (i) {
-      return {
-        "texto": alternativaCtrls[i].text.trim(),
-        "afirmativa": (alternativaCorreta == letras[i]) ? 1 : 0,
-      };
-    });
+Future<void> salvarQuestao() async {
+  final letras = ['a', 'b', 'c', 'd', 'e'];
+  final alternativas = List.generate(letras.length, (i) {
+    return {
+      "texto": alternativaCtrls[i].text.trim(),
+      "afirmativa": (alternativaCorreta == letras[i]) ? 1 : 0,
+    };
+  });
 
-    await ApiService.criarQuestaoObjetiva({
-      "titulo": tituloCtrl.text.trim(),
-      "descricao": descricaoCtrl.text.trim(),
-      "texto": textoCtrl.text.trim(),
-      "tipo": tipoQuestao,
-      "acesso": acesso,
-      "idCurso": cursoSelecionado, 
-      "idMateria": materiaSelecionada, 
-      "idDificuldade": dificuldade == 'facil'
-          ? 1
-          : dificuldade == 'medio'
-              ? 2
-              : 3,
-      "idProfessor": 1,
-      "alternativas": alternativas,
-    });
-
-    widget.onOpenChange(false);
+  // Validação rápida
+  final corretas = alternativas.where((a) => a['afirmativa'] == 1).length;
+  if (corretas != 1) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Selecione exatamente uma alternativa correta.")),
+    );
+    return;
   }
+
+  final dados = {
+    "titulo": tituloCtrl.text.trim(),
+    "descricao": descricaoCtrl.text.trim(),
+    "texto": textoCtrl.text.trim(),
+    "tipo": tipoQuestao,
+    "acesso": acesso,
+    "idCurso": cursoSelecionado,
+    "idMateria": materiaSelecionada,
+    "idDificuldade":
+        dificuldade == 'facil' ? 1 : dificuldade == 'medio' ? 2 : 3,
+    "idProfessor": 1,
+    "alternativas": alternativas,
+    "assuntos": [],
+  };
+
+  // Só adiciona a imagem se realmente existir
+if (imagemSelecionada != null) {
+  if (kIsWeb) {
+    dados["imagem"] = imagemSelecionada; // web envia o XFile inteiro
+  } else {
+    dados["imagem"] = imagemSelecionada!.path; // desktop/mobile
+  }
+}
+
+  await ApiService.criarQuestaoObjetiva(dados);
+  widget.onOpenChange(false);
+}
 
   String _mapDificuldade(dynamic valor) {
     if (valor == 1) return "facil";

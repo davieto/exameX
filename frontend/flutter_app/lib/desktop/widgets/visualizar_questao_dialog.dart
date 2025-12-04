@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 class VisualizarQuestaoDialog extends StatelessWidget {
   final dynamic questao;
@@ -130,10 +131,10 @@ Widget build(BuildContext context) {
                           color: color.onSurface)),
                   const SizedBox(height: 6),
                   Image.memory(
-                    questao['imagem'],
-                    height: 180,
-                    fit: BoxFit.contain,
-                  ),
+        Uint8List.fromList(List<int>.from(questao['imagem'])),
+        height: 180,
+        fit: BoxFit.contain,
+      ),
                 ],
               ),
 
